@@ -1,0 +1,17 @@
+{{ block title }}
+    電腦選中第幾回合
+{{ endblock }}
+
+{{ block content }}
+
+<div>
+    {{ if selected_get_money_now == True }}
+        <p>您會在今天得到{{ Constants.gained_amount_today }}元</p>
+    {{ else }}
+        <p>您會在{{ selected_waiting_period }}週後得到{{ selected_gained_amount }}元</p>
+    {{ endif }}
+</div>
+
+<button class="otree-btn-next btn btn-primary">下一頁</button>
+
+{{ endblock }}

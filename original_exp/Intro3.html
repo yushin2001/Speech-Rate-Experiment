@@ -1,0 +1,160 @@
+{{ block title }}
+    範例
+{{ endblock }}
+
+{{ block content }}
+<style>
+    body {
+        text-align: center;
+    }
+    #speak-button {
+        font-size: 30px;
+        margin: 30px;
+        display: none;
+    }
+    .form-check {
+        width: 200px;
+        margin: auto;
+    }
+    .hidden-area {
+        display: none;
+    }
+    .hide{
+        display: none;
+    }
+    .speech-area {
+        margin: auto;
+        padding: 8px;
+        text-align: center;
+        border: 4px solid black;
+        width: 280px;
+        height: auto;
+        font-size: 40px;
+        display: none;
+    }
+    .show-after-speech-area {
+        display: none;
+    }
+    .formfields-area {
+        margin: 20px;
+    }
+    .debug-info {
+        display: none;
+    }
+    .form-check:hover{
+        background-color: rgba(100, 190, 240, 0.3);
+    }
+
+</style>
+
+    <div class="example">
+        在進入正式的回合之前，我們先給您一個例子。
+    </div>
+
+    <button type="button" id="speak-button">請點按播放語音</button>
+
+    <div class="speech-area">
+        2 週後 <br>
+        得到 <br>
+        120 元
+    </div>
+
+    <div class="hide">
+        {{ player.treatment_speed }}
+    </div>
+
+    <div class="show-after-speech-area">        
+        <div class="formfields-area">
+        {{ formfield player.get_money_now_or_future_test }}
+        </div>
+        <div>
+            <p>
+            如果您選擇今天的報酬，那代表您今天會得到100元。<br>
+            如果您選擇未來的報酬，那代表您會在2週後得到120元。
+            </p>
+        </div>
+        註：這邊的金額和日期僅是範例，在真實的實驗中，每回合的金額和日期都會不同。
+        <br>
+        <br>
+
+        <div class="nextbutton-area">
+            <button class="otree-btn-next btn btn-primary">下一頁</button>
+        </div>
+
+    </div>
+
+
+    <div class="hidden-area">
+        {{ formfield player.treatment_speed }}
+    </div>
+
+
+<script>   
+    var voice;
+    // show 播放按鈕。
+    function setupVoice() {
+        var voices = synth.getVoices();
+        for(let index = 0; index < voices.length; index++) {
+            var lang = voices[index].lang;
+            if(lang.startsWith("Google 國語")) {
+                voice = voices[index];
+                $('#speak-button').show();
+                break;
+            }
+        }
+    }
+
+    var synth = window.speechSynthesis;
+    setupVoice(); // show 播放按鈕。
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = setupVoice;
+    }
+
+    // 若 voice 抓不到 Google 語音引擎，那1秒後還是 show 播放按鈕，避免完全無法作答。
+    setTimeout(function () {
+        $('#speak-button').show();
+    }, 1000)
+
+    // 按下播放按鈕
+    $('#speak-button').click(function(){
+        $speech_area = $('.speech-area');
+        $speech_area.show(); // 抓到文字區
+
+        var speech;
+        speech = $speech_area.text();
+
+        $speed = $('.hide');
+        speed = $speed.text()
+
+        onend = function () {
+            // 播放語音後選項顯示
+            $('.show-after-speech-area').show();
+        }
+        
+        speak(speech, voice, speed, onend);
+        setTimeout(onend, 3000); // workaround: 有時候 speak 的 onend 不會進去不知道為什麼，先再加一個 timeout 確保選項會顯示
+
+
+        // 按下 Next 按鈕
+        $('.otree-btn-next').click(function(){
+            radio_id_prefix = '#id_get_money_now_or_future_test'
+            is_answered = $(radio_id_prefix + '0').is(":checked") || $(radio_id_prefix + '1').is(":checked")
+        })
+    })
+
+    function speak(text, voice, speed, onend) {
+        var utterThis = new SpeechSynthesisUtterance(text);
+        utterThis.onend = onend;
+        utterThis.onerror = function(event) {
+            console.error('SpeechSynthesisUtterance.onerror');
+        }
+        utterThis.pitch = 1;
+        utterThis.rate = speed;
+        if (voice) {
+            utterThis.voice = voice;
+        }
+        window.speechSynthesis.speak(utterThis);
+    }
+
+</script>
+{{ endblock}}

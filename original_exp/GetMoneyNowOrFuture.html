@@ -1,0 +1,167 @@
+{{ block title }}
+    第 {{ player.round_number }} 回合
+{{ endblock }}
+
+{{ block content }}
+<style>
+    body {
+        text-align: center;
+    }
+    #speak-button {
+        font-size: 30px;
+        margin: 30px;
+        display: none;
+    }
+    .form-check {
+        width: 200px;
+        margin: auto;
+    }
+    .hidden-area {
+        display: none;
+    }
+    .hide{
+        display: none;
+    }
+    .speech-area {
+        margin: auto;
+        padding: 8px;
+        text-align: center;
+        border: 4px solid black;
+        width: 280px;
+        height: auto;
+        font-size: 40px;
+        display: none;
+    }
+    .show-after-speech-area {
+        display: none;
+    }
+    .formfields-area {
+        margin: 20px;
+    }
+    .debug-info {
+        display: none;
+    }
+    .form-check:hover{
+        background-color: rgba(100, 190, 240, 0.3);
+    }
+</style>
+
+
+    <button type="button" id="speak-button"> 請點擊播放語音 </button>
+
+    <div class="speech-area">
+        {{ player.waiting_period }} 週後 <br>
+        得到 <br>
+        {{ player.gained_amount }} 元
+    </div>
+
+    <div class="hide">
+        {{ player.treatment_speed }}
+    </div>
+
+    <div class="show-after-speech-area">        
+        <div class="formfields-area">
+            {{ formfield player.get_money_now_or_future }}
+        </div>
+        <div class="nextbutton-area">
+            <button class="otree-btn-next btn btn-primary">下一頁</button>
+        </div>
+    </div>
+
+
+    <input type="hidden" name="num_listen_times" id="num_listen_times" />
+    <input type="hidden" name="decision_duration" id="decision_duration" />
+
+
+<script>
+    var listen_times = 0; // 點擊「播放音檔」的次數
+    var is_answered = false; // 是否點選選項了
+    
+    var voice;
+    // show 播放按鈕。
+    function setupVoice() {
+        var voices = synth.getVoices();
+        for(let index = 0; index < voices.length; index++) {
+            var lang = voices[index].lang;
+            if(lang.startsWith("Google 國語")) {
+                voice = voices[index];
+                $('#speak-button').show();
+                break;
+            }
+        }
+    }
+
+    var synth = window.speechSynthesis;
+    setupVoice(); // show 播放按鈕。
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = setupVoice;
+    }
+
+    // 若 voice 抓不到 Google 語音引擎，那1秒後還是 show 播放按鈕，避免完全無法作答。
+    setTimeout(function () {
+        $('#speak-button').show();
+    }, 1000)
+
+    // 按下播放按鈕
+    $('#speak-button').click(function(){
+        $speech_area = $('.speech-area');
+        $speech_area.show(); // 抓到文字區
+
+        var speech;
+        speech = $speech_area.text();
+
+        $speed = $('.hide');
+        speed = $speed.text()
+
+        onend = function () {
+            // 播放語音後選項顯示
+            $('.show-after-speech-area').show();
+        }
+        
+        speak(speech, voice, speed, onend);
+        setTimeout(onend, 3000); // workaround: 有時候 speak 的 onend 不會進去不知道為什麼，先再加一個 timeout 確保選項會顯示
+
+        listen_times++;
+        document.getElementById('num_listen_times').value = listen_times;
+
+
+        // decision_duration
+        if(listen_times == 1) {
+            var duration = 0
+            let interval = 0.1
+            let timer = setInterval(()=>{ // 每隔 interval 秒執行一次
+                if(listen_times >= 1){
+                    duration += interval; // 按下播放後開始計時
+                    document.getElementById('decision_duration').value = duration.toFixed(1);
+                    // JavaScript toFixed() Method: Convert a number into a string, keeping only N decimals
+                }
+                if(is_answered) {
+                    clearInterval(timer);
+                }
+            }, interval * 1000);
+
+            // 按下 Next 按鈕
+            $('.otree-btn-next').click(function(){
+                radio_id_prefix = '#id_get_money_now_or_future'
+                is_answered = $(radio_id_prefix + '0').is(":checked") || $(radio_id_prefix + '1').is(":checked")
+            })
+        }
+    })
+
+    function speak(text, voice, speed, onend) {
+        var utterThis = new SpeechSynthesisUtterance(text);
+        utterThis.onend = onend;
+        utterThis.onerror = function(event) {
+            console.error('SpeechSynthesisUtterance.onerror');
+        }
+        utterThis.pitch = 1;
+        utterThis.rate = speed;
+        if (voice) {
+            utterThis.voice = voice;
+        }
+        window.speechSynthesis.speak(utterThis);
+    }
+
+</script>
+
+{{ endblock }}
