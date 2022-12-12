@@ -1,0 +1,17 @@
+{{ block title }}
+    Selection result
+{{ endblock }}
+
+{{ block content }}
+
+<div>
+    {{ if selected_get_money_now == True }}
+        <p>you will receive 100 dollars today.</p>
+    {{ else }}
+        <p>you will receive {{ selected_gained_amount }} dollars in {{ selected_waiting_period }} weeks</p>
+    {{ endif }}
+</div>
+
+
+{{ next_button }}
+{{ endblock }}

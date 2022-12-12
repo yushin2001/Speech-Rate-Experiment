@@ -1,0 +1,165 @@
+{{ block title }}
+    Example
+{{ endblock }}
+
+{{ block content }}
+<style>
+    body {
+        text-align: center;
+    }
+    #speak-button {
+        font-size: 30px;
+        margin: 30px;
+    }
+    #audio {
+        display: none;
+    }
+    .form-check {
+        width: 370px;
+        margin: auto;
+    }
+    .hidden-area {
+        display: none;
+    }
+    .speech-area {
+        margin: auto;
+        padding: 8px;
+        text-align: center;
+        border: 4px solid black;
+        width: 280px;
+        height: auto;
+        display: none;
+        font-size: 40px;
+        display: none;
+    }
+    .show-after-speech-area {
+        display: none;
+    }
+    .formfields-area {
+        margin: 20px;
+    }
+    .debug-info {
+        display: none;
+    }
+    .form-check:hover{
+        background-color: rgba(100, 190, 240, 0.3);
+    }
+</style>
+
+    <div class="example">
+        We will provide you an example before the real rounds start.
+    </div>
+
+    <button type="button" id="speak-button"> Please click to play audio </button>
+
+
+    <audio controls id='audio' src= "{{ static audio }}" > </audio>
+
+
+    <div class="speech-area">
+        120 dollars <br>
+        {{ player.treatment_words }} <br>
+        in 2 weeks
+    </div>
+
+    <div class="show-after-speech-area">        
+        <div class="formfields-area">
+            {{ formfield player.get_money_now_or_future_test }}
+        </div>
+        <div>
+            <p>
+            If you select “I choose to receive the payment today”, then you will receive 100 dollars today.<br>
+            If you select “I choose to receive the payment in the future”, then you will receive 120 dollars in 2 weeks.
+            </p>
+        </div>
+        Note: this is an example for illustration purpose. The amount and date will be different in the real rounds.
+        <br>
+        <br>
+ 
+        <button class="otree-btn-next btn btn-primary">Next</button>
+
+    </div>
+
+    <div class="hidden-area">
+        {{ formfield player.treatment_words }}
+    </div>
+
+<!-- 合成語音 -->
+<!--
+<script>    
+    // show 播放按鈕。
+    var voice;
+    function setupVoice() {
+        var voices = synth.getVoices();
+        for(let index = 0; index < voices.length; index++) {
+            var lang = voices[index].lang
+            if(lang.startsWith("en-US")) {
+                voice = voices[index];
+                $('#speak-button').show(); // 當 voice ready 時才 show 播放按鈕。
+                break;
+            }
+        }
+    }
+
+    var synth = window.speechSynthesis;
+    setupVoice(); // show 播放按鈕。
+
+    // 若 voice 抓不到 Google 語音引擎，那1秒後還是 show 播放按鈕，避免完全無法作答。
+    setTimeout(function () {
+        $('#speak-button').show();
+    }, 1000)
+
+    
+    // 按下播放按鈕
+    $('#speak-button').click(function(){
+        $speech_area = $('.speech-area');
+        $speech_area.show(); // 抓到文字區
+
+        var speech;
+        speech = $speech_area.text()
+
+        speed = 1;
+
+        onend = function () {
+            // 播放語音後選項顯示
+            $('.show-after-speech-area').show();
+        }
+
+        speak(speech, voice, speed, onend);
+        setTimeout(onend, 4500); // workaround: 有時候 speak 的 onend 不會進去不知道為什麼，先再加一個 timeout 確保選項會顯示
+        })
+
+    function speak(text, voice, speed, onend) {
+        var utterThis = new SpeechSynthesisUtterance(text);
+        utterThis.onend = onend;
+        utterThis.pitch = 1;
+        utterThis.rate = speed;
+        if (voice) {
+            utterThis.voice = voice;
+        }
+        utterThis.lang = 'en-US';
+        window.speechSynthesis.speak(utterThis);
+    }
+
+</script>
+-->
+
+<!-- 錄音 -->
+<script>
+    let audio = document.getElementById('audio');
+
+    $('#speak-button').click(function(){
+        audio.play();
+    })
+
+    audio.addEventListener('play', function(){
+        $speech_area = $('.speech-area');
+        $speech_area.show();
+    });
+
+    audio.addEventListener('ended', function(ev){
+        $('.show-after-speech-area').show();
+    });
+</script>
+
+{{ endblock}}
